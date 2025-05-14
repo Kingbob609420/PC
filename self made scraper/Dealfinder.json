@@ -1,0 +1,47 @@
+import React, { useState } from "react";
+import { Input } from "../components/ui/input"; // Using relative import
+import { Button } from "../components/ui/button"; // Using relative import
+import axios from "axios";
+
+const DealScraperApp = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSearch = async () => {
+    if (!searchQuery) return;
+
+    setLoading(true);
+    setDeals([]); // Clear old deals
+    setError(null); // Reset error state
+
+    try {
+      // API call to the backend scraping service
+      const response = await axios.post("http://localhost:5000/api/scrape-deals", { query: searchQuery });
+      setDeals(response.data.deals || []);
+    } catch (error) {
+      console.error("Error fetching deals:", error);
+      setError("There was an issue fetching the deals. Please try again.");
+      setDeals([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-4 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Web Deal Scraper</h1>
+      <div className="flex space-x-2 mb-4">
+        <Input
+          type="text"
+          placeholder="Search for deals..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-grow"
+        />
+        <Button onClick={handleSearch} disabled={loading}>
+          {loading ? "Searching..." : "Search"}
+        </Button>
+      </div>
+      {loading
